@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Will You Be My Valentine?</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    touch-action: manipulation; /* Prevents zooming on fast taps */
+  }
+
+  body {
+    margin: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .card {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .cat {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    margin: 10px 0 20px;
+    color: #ff4d6d;
+    font-size: 1.5rem;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    min-height: 150px; /* Space for the growing button */
+    position: relative;
+  }
+
+  button {
+    padding: 12px 25px;
+    font-size: 18px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  #yesBtn {
+    background: #ff4d6d;
+    color: white;
+    z-index: 20;
+  }
+
+  #noBtn {
+    background: #444;
+    color: white;
+  }
+
+  #resetBtn {
+    margin-top: 20px;
+    background: #666;
+    color: white;
+    display: none;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <img class="cat" id="cat" />
+
+  <h1 id="question">Saqhiba Will you be my Valentine? 💖</h1>
+
+  <div class="buttons" id="buttons">
+    <button id="yesBtn">YES ❤️</button>
+    <button id="noBtn">NO 💔</button>
+  </div>
+
+  <button id="resetBtn">🔄 Reset</button>
+</div>
+
+<script>
+  const noBtn = document.getElementById("noBtn");
+  const yesBtn = document.getElementById("yesBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const cat = document.getElementById("cat");
+  const question = document.getElementById("question");
+  const buttons = document.getElementById("buttons");
+
+  let scaleFactor = 1;
+  let noScaleFactor = 1;
+
+  const idleCat = "https://media.giphy.com/media/Zl7u48zLVFgLpRwq6f/giphy.gif";
+
+  const sadMemes = [
+    "https://media.giphy.com/media/901mxGLGQN2PyCQpoc/giphy.gif",
+    "https://media.giphy.com/media/8NBvLMgvo8fc2diHlF/giphy.gif",
+    "https://media.giphy.com/media/SGZnp1LzGT5py5Aq0c/giphy.gif",
+    "https://media.giphy.com/media/xcnjnaeJTwyDJB28Oi/giphy.gif",
+    "https://media.giphy.com/media/EeDC1G5zZXAatO0BgN/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3dXh2NjA0eTFwamw5bTZhcGFtdHVicnI5cXBtMWt2cWd2NjlodnRjOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/u5WFTVgED8bN3OEqey/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3OGJyZDV0ZXdoYjQydGs1ZGl4MTlhNnlnYmMwMXI4OTZ0Zm82ZWw5eCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Ry4QGzRj4NgdFFHtPZ/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjRkbm81ZzgwNXBieGV0NXd1bmswOTRodWExM3BwNHR5amd1c3BhMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/P5Dc5E7qDHrIVGUlk3/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3dm01Z2lnZjF0N2xvcHQydngzOHA1MG5nemMzb3BsbWkxMjJhbXBjeCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/98MaHVwJOmWMz4cz1K/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3c2NmZndyeTBlNnN2NDBneDRoMDh2am45azg0YW81eG9xbThrMjNsZiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VYWzwV3B6F5JnoxKlp/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3aWtlYXBubHRjbTUxcXB0ZWc3ZnBvZmtkcjJvb3pvanZyZDh3cTZlMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/boi03Xid1JUtmvSKsq/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3aWtlYXBubHRjbTUxcXB0ZWc3ZnBvZmtkcjJvb3pvanZyZDh3cTZlMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/NKyrQ5qlYl6NT3EpuM/giphy.gif",
+  ];
+
+  const happyMemes = [
+    "https://media.giphy.com/media/SRWraIqwackol1U9ZG/giphy.gif",
+    "https://media.giphy.com/media/IJpRdpdLwv79RZixOj/giphy.gif",
+    "https://media.giphy.com/media/vTfFCC3rSfKco/giphy.gif",
+    "https://media.giphy.com/media/7vdZWm9lL82ru/giphy.gif",
+    "https://media.giphy.com/media/7WJ0cL3xCYtc4/giphy.gif",
+    "https://media.giphy.com/media/jv2NrCzvwqPh6/giphy.gif",
+    "https://media.giphy.com/media/1NZ73RpMEHYetqLXcn/giphy.gif",
+    "https://media.giphy.com/media/5Uz5EM8AscBARmldt3/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3OTdnYmg3MmEzanBzdDc2Y3dlYXUweGoxM3dsMTMwb2RxeWRwdmFseCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/AOa3xz03AH4kg/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3BwZm14NjFhdnNkczFoenpmcmQ2ZWZ5emYzanoxNDg5NTlwOHJ1NiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/8ZgFoK7N5s0ow/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3bGsyNTFoOTNuYjhqZXN2c2hjMW94NW5heHl6Z2ZwdmN3OGM3Y2M5biZlcD12MV9naWZzX3NlYXJjaCZjdD1n/juG2hdQUFo06Y/giphy.gif",
+  ];
+
+  let unusedSad = [...sadMemes];
+  let unusedHappy = [...happyMemes];
+
+  function preloadGifs(arr) {
+    arr.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }
+  preloadGifs([idleCat, ...sadMemes, ...happyMemes]);
+
+  function nextGif(pool, original) {
+    if (pool.length === 0) pool.push(...original);
+    return pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+  }
+
+  cat.src = idleCat;
+
+  // New logic for clicking NO
+  noBtn.addEventListener("click", () => {
+    // 1. Change Cat GIF
+    cat.src = nextGif(unusedSad, sadMemes);
+    
+    // 2. Make YES button bigger
+    scaleFactor += 0.4;
+    yesBtn.style.transform = `scale(${scaleFactor})`;
+    
+    // 3. Make NO button smaller
+    noScaleFactor -= 0.15;
+    if (noScaleFactor <= 0.1) {
+      noBtn.classList.add("hidden"); // Disappear when too small
+    } else {
+      noBtn.style.transform = `scale(${noScaleFactor})`;
+    }
+  });
+
+  yesBtn.addEventListener("click", () => {
+    buttons.classList.add("hidden");
+    question.textContent = "You are my Valentine Saqhiba 💖";
+    cat.src = nextGif(unusedHappy, happyMemes);
+    resetBtn.style.display = "inline-block";
+  });
+
+  resetBtn.addEventListener("click", () => {
+    // Reset Pool
+    unusedSad = [...sadMemes];
+    unusedHappy = [...happyMemes];
+    
+    // Reset UI
+    cat.src = idleCat;
+    question.textContent = "Saqhiba Will you be my Valentine? 💖";
+    buttons.classList.remove("hidden");
+    resetBtn.style.display = "none";
+
+    // Reset button sizes
+    scaleFactor = 1;
+    noScaleFactor = 1;
+    yesBtn.style.transform = "scale(1)";
+    noBtn.style.transform = "scale(1)";
+    noBtn.classList.remove("hidden");
+  });
+</script>
+
+</body>
+</html>
